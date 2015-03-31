@@ -9,7 +9,7 @@
 
 chef_gem "chef-validation" do
   version Chef::Validation.cookbook_version(node)
-  options "--ignore-dependencies"
+  options "--ignore-dependencies --local #{File.expand_path(File.dirname(__FILE__) + '/../')}"
   action :nothing
 end.run_action(:install)
 
