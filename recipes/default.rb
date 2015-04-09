@@ -13,4 +13,19 @@ chef_gem "chef-validation" do
   action :nothing
 end.run_action(:install)
 
+gem_version = Chef::Validation.cookbook_version(node)
+gem_file = "chef-validation-#{gem_version}.gem"
+
+cookbook_file "/tmp/#{gem_file}" do
+  source gem_file
+  action :nothing
+end.run_action(:create_if_missing)
+
+chef_gem "chef-validation" do
+  version gem_Version
+  source "/tmp/#{gem_file}"
+  options "--ignore-dependencies"
+  action :nothing
+end.run_action(:install)
+
 require "chef-validation"
