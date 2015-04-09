@@ -22,7 +22,7 @@ cookbook_file "/tmp/#{gem_file}" do
 end.run_action(:create_if_missing)
 
 chef_gem "chef-validation" do
-  version gem_Version
+  version gem_version
   source "/tmp/#{gem_file}"
   options "--ignore-dependencies"
   action :nothing
