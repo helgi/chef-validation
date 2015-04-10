@@ -15,6 +15,10 @@ describe Chef::Validation::Validator do
               "cookbook/party/yes/magic" => ["Attribute cookbook/party/yes/magic is required but was not present."],
             })
       end
+
+      it 'validates volume data' do
+        expect(described_class.run(node, glob_volumes_rules)).to be_empty
+      end
     end
   end
 end

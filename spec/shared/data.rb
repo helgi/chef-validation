@@ -33,7 +33,19 @@ def node
           'party' => false,
           'work'  => true
         }
-      }
+      },
+      'volumes' => [
+        {
+          'user' => 'ubuntu',
+          'device' => '/dev/sdm',
+          'mount' => '/data'
+        },
+        {
+          'mode' => '777',
+          'device' => '/dev/sdo',
+          'mount' => '/db'
+        }
+      ]
     }
   }
 end
@@ -70,6 +82,19 @@ def glob_rules_fail
       'required' => true
     },
   })
+end
+
+def glob_volumes_rules
+  {
+    'cookbook/volumes/*/mount' => {
+      'type' => 'string',
+      'required' => true,
+    },
+    'cookbook/volumes/*/device' => {
+      'type' => 'string',
+      'required' => true,
+    }
+  }
 end
 
 def recipes

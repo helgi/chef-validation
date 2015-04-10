@@ -168,14 +168,14 @@ module Chef::Validation
               end
 
               # Deals with when the node tree is deeper than the ruleset specifies
-              #if File.fnmatch(attribute + ATTR_SEPARATOR + '*', key)
-              #  # extract the expanded name
-              #  count = attribute.count(ATTR_SEPARATOR) + 2  # account for the last / from above and one additional seat
-              #  last = (key.split(ATTR_SEPARATOR, count).last.length + 2)
-              #  data[key[0..-last]] = rules
-              #  attributes.delete(attribute)
-              #  next
-              #end
+              if File.fnmatch(attribute + ATTR_SEPARATOR + '*', key)
+                # extract the expanded name
+                count = attribute.count(ATTR_SEPARATOR) + 2  # account for the last / from above and one additional seat
+                last = (key.split(ATTR_SEPARATOR, count).last.length + 2)
+                data[key[0..-last]] = rules
+                attributes.delete(attribute)
+                next
+              end
             end
           end
 
