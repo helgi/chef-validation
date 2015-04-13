@@ -3,6 +3,10 @@ lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'chef/validation/version'
 
+gemfile = "files/default/chef-validation-#{Chef::Validation::VERSION}.gem"
+files = `git ls-files -z`.split("\x0")
+files.delete(gemfile)
+puts files
 Gem::Specification.new do |spec|
   spec.name          = "chef-validation"
   spec.version       = Chef::Validation::VERSION
@@ -13,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = "https://github.com/reset/chef-validation"
   spec.license       = "MIT"
 
-  spec.files         = `git ls-files -z`.split("\x0")
+  spec.files         = files
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = spec.files.grep(%r{^(test|spec|features)/})
   spec.require_paths = ["lib"]
