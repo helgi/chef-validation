@@ -121,30 +121,123 @@ module Chef::Validation
           errors
         end
 
-        def validate_type(value, type, name)
+        def validate_type(value, types, name)
           errors = []
-          state  = nil
-          case type.downcase
-          when STRING
-            state = :error unless value.is_a?(String)
-          when ARRAY
-            state = :error unless value.is_a?(Array)
-          when HASH
-            state = :error unless value.is_a?(Hash) || value.is_a?(Mash)
-          when SYMBOL
-            state = :error unless value.is_a?(Symbol)
-          when BOOLEAN
-            state = :error unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
-          when NUMERIC
-            state = :error unless value.is_a?(Fixnum)
-          else
-            nil
+          data = types.split(',')
+          data.each do |type|
+            state  = nil
+            case type.strip.downcase
+            when STRING
+              state = :error unless value.is_a?(String)
+            when ARRAY
+              state = :error unless value.is_a?(Array)
+            when HASH
+              state = :error unless value.is_a?(Hash) || value.is_a?(Mash)
+            when SYMBOL
+              state = :error unless value.is_a?(Symbol)
+            when BOOLEAN
+              state = :error unless value.is_a?(TrueClass) || value.is_a?(FalseClass)
+            when NUMERIC
+              state = :error unless value.is_a?(Fixnum)
+            else
+              nil
+            end
+
+            if state == :error
+              errors << "Must be of type '#{types}' but got: #{value.class}."
+            end
           end
 
-          if state == :error
-            errors << "Must be of type '#{type}' but got: #{value.class}."
+          # If more than one type is passed in do validation differently
+          if data.length > 1 and data.length < errors.length
+            # Means at least one type worked
+            []
+          elsif data.length == errors.length
+            return errors.uniq
           end
-          errors
+
+          []
+        end
+
+        # Attempts to expand as many of the glob rules against the passed in attributes
+        def expand_attributes(node, attributes)
+          data = {}
+          flattened = flatten(node)
+          attributes.each do |attribute, rules|
+            flattened.each do |key, value|
+              # If no glob then passthrough
+              unless attribute.include? '*'
+                data[attribute] = rules
+                attributes.delete(attribute)
+                next
+              end
+
+              # Do strict matching for when attribute exists in the dataset
+              if File.fnmatch(attribute, key)
+                data[key] = rules
+                attributes.delete(attribute)
+                next
+              end
+
+              # Deals with when the node tree is deeper than the ruleset specifies
+              if File.fnmatch(attribute + ATTR_SEPARATOR + '*', key)
+                # extract the expanded name
+                count = attribute.count(ATTR_SEPARATOR) + 2  # account for the last / from above and one additional seat
+                last = (key.split(ATTR_SEPARATOR, count).last.length + 2)
+                data[key[0..-last]] = rules
+                attributes.delete(attribute)
+                next
+              end
+            end
+          end
+
+          # attributes now contains the ones we couldn't match against the node data
+          attributes.each do |attribute, rules|
+            data.keys.each do |key|
+              # Make sure glob keys don't go through
+              if key.include?('*')
+                next
+              end
+
+              text = ''
+              # Best to split on what is being replaced
+              attribute.split('*').each do |segment|
+                if segment[-1] == ATTR_SEPARATOR
+                  segment += '*' # make sure * is added in for the replacing
+                end
+        
+                if match = key.match("^#{segment.gsub('*', '(.*?)' + ATTR_SEPARATOR)}")
+                  # Replace the * with the matched value
+                  segment.gsub!("*", match.captures[0])
+                end
+
+                text += segment
+              end
+        
+              # Slap the data together even if it overwrites, still gets the same rule set
+              data[text] = rules
+            end
+          end
+        
+          data
+        end
+
+        # Turns a nested hash into a flat hash for easier matching
+        def flatten(source, target = {}, separator = ATTR_SEPARATOR, namespace = nil)
+          prefix = "#{namespace}#{separator}" if namespace
+          case source
+          when Hash
+            source.each do |key, value|
+              flatten(value, target, separator, "#{prefix}#{key}")
+            end
+          when Array
+            source.each_with_index do |value, index|
+              flatten(value, target, separator, "#{prefix}#{index}")
+            end
+          else
+            target[namespace] = source
+          end
+          target
         end
 
         # Attempts to expand as many of the glob rules against the passed in attributes
