@@ -6,7 +6,7 @@ require 'chef/validation/version'
 gemfile = "files/default/chef-validation-#{Chef::Validation::VERSION}.gem"
 files = `git ls-files -z`.split("\x0")
 files.delete(gemfile)
-puts files
+
 Gem::Specification.new do |spec|
   spec.name          = "chef-validation"
   spec.version       = Chef::Validation::VERSION
