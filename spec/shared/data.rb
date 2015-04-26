@@ -65,17 +65,17 @@ def glob_rules
     # Should not match anything and not fail
     'cookbook/party/*/things/*/non-existent' => {
       'type' => 'boolean'
-    }
+    },
+    # Should not match anything but should not raise since "nada" is optional
+    'cookbook/nada/*/fluff' => {
+      'type' => 'numeric',
+      'required' => true
+    },
   }
 end
 
 def glob_rules_fail
   glob_rules.merge({
-    # Should not match anything but should raise
-    'cookbook/nada/*/fluff' => {
-      'type' => 'numeric',
-      'required' => true
-    },
     # magic isn't mention but we should be resolving that
     'cookbook/party/*/magic' => {
       'type' => 'numeric',
