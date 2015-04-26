@@ -219,6 +219,15 @@ module Chef::Validation
             end
           end
         
+          # Nix any attribute rules that still have * in them
+          # To get better validation mark  theparent element as required as well
+          # to get more granular error handling
+          data.each do |matcher, rules|
+            if matcher.include?('*') and rules.has_key?('required')
+              data.delete(matcher)
+            end
+          end
+
           data
         end
 
