@@ -67,6 +67,9 @@ module Chef::Validation
         if rules["choice"].present?
           errors += validate_choice(value, rules["choice"], name)
         end
+        if rules["choices"].present?
+          errors += validate_choice(value, rules["choices"], name)
+        end
 
         errors
       end
