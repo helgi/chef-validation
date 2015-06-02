@@ -25,6 +25,7 @@ chef_gem "chef-validation" do
   version gem_version
   source "/tmp/#{gem_file}"
   options "--ignore-dependencies"
+  compile_time false if respond_to?(:compile_time)
   action :nothing
 end.run_action(:install)
 
